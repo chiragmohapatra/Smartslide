@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class='columns is-centered'>
+  <div class='column is-half has-text-centered'>
+<h1>Profile</h1>
+<figure class="image is-128x128 is-inline-block">
+  <img class="is-rounded" src="https://styles.redditmedia.com/t5_2waxj9/styles/communityIcon_vg57lpkb3jp51.png" alt='User profile picture'>
+</figure>
+<p></p><strong>Name: </strong>{{ user.name }}</p>
+<p><strong>Email: </strong>{{ user.email }}</p>
+<p><strong>Role: </strong>{{ 'Instructor' if user.is_instructor else 'Student' }}</p>
+</div>
+</div>
+{% endblock %}

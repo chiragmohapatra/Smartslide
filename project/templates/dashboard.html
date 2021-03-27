@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+  Welcome, {{name}}!
+</h1>
+<h1 class='subtitle'>
+    Your current courses appear here
+</h1>
+{% for course in courses %}
+<article class="tile is-vertical notification is-warning">
+  <p class="title">{{course.code}}</p>
+  <p class="subtitle">{{course.name}}</p>
+</article>
+{% endfor %}
+{% endblock %}
