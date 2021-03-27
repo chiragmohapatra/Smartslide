@@ -9,8 +9,10 @@
 </h1>
 {% for course in courses %}
 <article class="tile is-vertical notification is-warning">
+<a href='/course/{{course.code}}'>
   <p class="title">{{course.code}}</p>
   <p class="subtitle">{{course.name}}</p>
+</a>
 </article>
 {% endfor %}
 {% endblock %}

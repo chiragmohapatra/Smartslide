@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="title">
+    {{course.name}}
+</h1>
+<h1 class='subtitle'>
+    {{course.code}}
+</h1>
+<h1 class='subtitle'>
+    Instructor: {{instructor}}
+</h1>
+
+{% if admin_access %}
+<button class="button is-block is-info is-large">Upload a new lecture</button>
+{% endif %}
+
+{% endblock %}

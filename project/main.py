@@ -89,3 +89,23 @@ def enrollcourse_post():
     db.session.commit()
     
     return redirect(url_for('main.index'))
+
+@main.route('/course/<code>')
+@login_required
+def course(code):
+    course = Course.query.filter_by(code=code).first()
+
+    if not course:
+        return render_template('404.html')
+
+    if current_user.is_instructor:
+        if course.instructor_id != current_user.id:
+            return 'Invalid access'
+    else:
+        user_course = User_Course.query.filter_by(course_id=course.id,user_id=current_user.id).first()
+        if not user_course:
+            return 'Invalid access'
+
+    instructor = User.query.filter_by(id=course.instructor_id).first().name
+
+    return render_template('course_page.html', course=course, instructor=instructor, admin_access=current_user.is_instructor)
