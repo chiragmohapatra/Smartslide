@@ -1,2 +1,4 @@
 project/__pycache__/
 __pycache__/
+project/testing/
+.DS_Store
