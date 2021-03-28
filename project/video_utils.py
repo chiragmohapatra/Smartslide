@@ -7,9 +7,9 @@ import cv2  # still used to save images out
 import numpy as np
 from decord import VideoReader
 from decord import cpu, gpu
-import utils
+from .utils import *
+from .subs_utils import *
 import pytesseract
-import subs_utils
 
 PROCESSED_FILES_DIR = "project/testing/"
 
@@ -127,12 +127,12 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
             "image_path": path of image (pdf screenshot) of this slide, 
             "video_frame_matched": video frame number matched with this frame, 
             "video_frame_timeframe_match: time stamp in seconds of frame of video that matched with this slide,
-            "subtitle": subtitle, 
+            "subtitles": subtitle, 
             "audio_path": path of audio file for this slide
         }) 
     """
     pdf_out_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "pdf_pages")
-    if (not debug): utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
+    if (not debug): convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
     video_frames_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "video_frames")
     if (not debug): video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
 
@@ -166,7 +166,7 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
     for slide_no, pdf_frame_text, _ in pdf_frame_texts:
         all_comparision = []
         for frame_index, video_frame_text in video_frames_texts:
-            s = utils.fraction_match_texts(pdf_frame_text, video_frame_text)
+            s = fraction_match_texts(pdf_frame_text, video_frame_text)
             all_comparision.append((frame_index, s))
             # print(f"slide_no {slide_no}, frame_index {frame_index}, match {s}")
         
@@ -198,7 +198,7 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
     all_slides_data = []
     for i in range(0, len(pdf_frame_texts)):
         slide_no, slide_text, image_path = pdf_frame_texts[i]
-        all_slides_data.append({"slide_no": slide_no+1, "slide_text": slide_text, "image_path": image_path, "video_frame_matched": matched[slide_no], "video_matched_frame_time": utils.get_seconds_from_frame_no(matched[slide_no], video_file_path)})
+        all_slides_data.append({"slide_no": slide_no+1, "slide_text": slide_text, "image_path": image_path, "video_frame_matched": matched[slide_no], "video_matched_frame_time": get_seconds_from_frame_no(matched[slide_no], video_file_path)})
 
     times = []
     for i in range(0, len(all_slides_data)):
@@ -207,11 +207,11 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
         else:
             times.append((all_slides_data[i]["video_matched_frame_time"], all_slides_data[i+1]["video_matched_frame_time"]))
 
-    subs_and_audios = subs_utils.generate_subs(video_file_path , times)
+    subs_and_audios = generate_subs(video_file_path , times)
     
     audio_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "audios")
     for i in range(0, len(all_slides_data)):
-        all_slides_data[i]["subtitle"] = subs_and_audios[i][0]
+        all_slides_data[i]["subtitles"] = subs_and_audios[i][0]
         old_audio_path = subs_and_audios[i][1]
         # new_audio_path = os.path.join(audio_dir, str(slide_no)+".mp3")
         # os.rename(old_audio_path, new_audio_path)
@@ -223,4 +223,4 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
 if __name__ == '__main__':
     # test it
     # video_to_frames(video_path='project/testing/lecture.mp4', frames_dir='project/testing/extracted_frames', overwrite=True, every=60)
-    # seperate_into_slides("project/testing/lecture.pdf", "project/testing/lecture.mp4", "0", "0", False)
+    seperate_into_slides("/Users/vishal/Desktop/Coding_B/Hackathons/LA Hacks/Smartslide/files/course-1-lecture-5.pdf", "/Users/vishal/Desktop/Coding_B/Hackathons/LA Hacks/Smartslide/files/course-1-lecture-5.mp4", "0", "0", False)

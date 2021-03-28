@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from . import db
 from .models import Course, User, User_Course, Lecture, Slide
 import os
+from .video_utils import *
 from multiprocessing import Process
 
 main = Blueprint('main', __name__)
@@ -132,9 +133,11 @@ def newlecture(code):
 
     return render_template('new_lecture.html', code=code, default_name='Lecture '+str(num_lectures+1))
 
-def process_slides(ppt_path, video_path, lecture):
+def process_slides(ppt_path, video_path, current_user, lecture):
     slides = []
-    # slides = get_slides(ppt_path, video_path)
+    print(current_user)
+    print(lecture)
+    slides = seperate_into_slides(ppt_path, video_path, str(current_user.id), str(lecture.id), False)
     
     for slide in slides:
         new_slide = Slide(
@@ -190,12 +193,14 @@ def newlecture_post(code):
     db.session.add(lecture)
     db.session.commit()
 
-    slides_process = Process(
-        target=process_slides,
-        args=(ppt_path, video_path, lecture),
-        daemon=True
-    )
-    slides_process.start()
+    process_slides(ppt_path, video_path, current_user, lecture)
+
+    # slides_process = Process(
+    #     target=process_slides,
+    #     args=(ppt_path, video_path, current_user, lecture),
+    #     daemon=True
+    # )
+    # slides_process.start()
 
     return redirect(url_for('main.course', code=code))
 
