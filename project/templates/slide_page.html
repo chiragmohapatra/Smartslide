@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+      <div class="notification is-danger">
+          {{ messages[0] }}
+      </div>
+  {% endif %}
+{% endwith %}
+<h1 class="subtitle">
+    {{course_name}}
+</h1>
+<h1 class='title'>
+    {{lecture_name}}
+</h1>
+<h1 class='subtitle'>
+    Slide {{ slide.slide_no }} of {{ total_slides }}
+</h1>
+
+{% if slide.slide_no > 1 %}
+<a class="button" href='slides/{{previous_slide_id}}'>Previous</a>
+{% endif %}
+{% if slide.slide_no < total_slides %}
+<a class="button" href='slides/{{next_slide_id}}'>Next</a>
+{% endif %}
+
+<img src='{{ slide.image_path }}'>
+
+<audio controls>
+    <source src='{{ slide.audio_path }}' type='audio/wav'>
+</audio>
+
+<p>{{slide.subtitles}}</p>
+
+{% endblock %}

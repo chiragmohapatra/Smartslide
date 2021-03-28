@@ -21,13 +21,13 @@ class User_Course(db.Model):
     user_id = db.Column(db.Integer)
     course_id = db.Column(db.Integer)
 
-class lecture(db.Model):
+class Lecture(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer)
-    date = db.Column(db.Date)
+    lecture_no = db.Column(db.Integer)
     name = db.Column(db.String(1000))
 
-class slide(db.Model):
+class Slide(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     lecture_id = db.Column(db.Integer)
     slide_no = db.Column(db.Integer)
