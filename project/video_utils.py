@@ -132,9 +132,9 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
         }) 
     """
     pdf_out_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "pdf_pages")
-    if (not debug) utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
+    if (not debug): utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
     video_frames_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "video_frames")
-    if (not debug) video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
+    if (not debug): video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
 
     contrast = cv2.imread("images/jp_gates_contrast.png")
     pdf_frame_texts = []
@@ -223,4 +223,4 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
 if __name__ == '__main__':
     # test it
     # video_to_frames(video_path='project/testing/lecture.mp4', frames_dir='project/testing/extracted_frames', overwrite=True, every=60)
-    seperate_into_slides("project/testing/lecture.pdf", "project/testing/lecture.mp4", "0", "0", True)
+    # seperate_into_slides("project/testing/lecture.pdf", "project/testing/lecture.mp4", "0", "0", False)
