@@ -305,9 +305,10 @@ def generate_subs(filename,times):
     remove_subclips(times)
     return ans
 
-
+"""
 times = [(0,2),(3,12)]
 subs = generate_subs('./data/samplevid.mp4' , times)
 
 for sub in subs:
     print(sub)
+"""
