@@ -31,3 +31,9 @@ Video is at project/testing/lecture.mp4 and frames are saved at project/testing/
 ```
 python project video_utils.py
 ```
+
+## Pdf to images
+```
+conda install poppler
+python pdf_to_images.py
+```
