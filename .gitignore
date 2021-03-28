@@ -1,5 +1,4 @@
 project/__pycache__/
-<<<<<<< HEAD
 __pycache__/
 project/testing/
 .DS_Store
@@ -8,6 +7,7 @@ out1.txt
 out2.txt
 out3.txt
 out4.txt
-=======
-files/*
->>>>>>> webapp
+project/temp
+temp
+webapp
+main
