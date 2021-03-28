@@ -7,8 +7,8 @@ import cv2  # still used to save images out
 import numpy as np
 from decord import VideoReader
 from decord import cpu, gpu
-from utils import *
-from subs_utils import *
+from .utils import *
+from .subs_utils import *
 import pytesseract
 
 PROCESSED_FILES_DIR = "project/testing/"

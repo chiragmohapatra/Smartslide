@@ -240,6 +240,7 @@ def slides(slide_id):
     if next_slide:
         next_slide_id = next_slide.id
 
+    print(slide.image_path, slide.audio_path, slide.slide_no, slide.subtitles)
     return render_template('slide_page.html', slide=slide, course_name=course.name, lecture_name=lecture.name, total_slides=total_slides, previous_slide_id=previous_slide_id, next_slide_id=next_slide_id)
 
 @main.route('/lecture/<lecture_id>')

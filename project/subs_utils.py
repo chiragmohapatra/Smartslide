@@ -33,6 +33,7 @@ def percentile(arr, percent):
     """
     Calculate the given percentile of arr.
     """
+    assert len(arr)>0
     arr = sorted(arr)
     index = (len(arr) - 1) * percent
     floor = math.floor(index)
@@ -164,6 +165,8 @@ def find_speech_regions(filename, frame_width=4096, min_region_size=0.5, max_reg
         chunk = reader.readframes(frame_width)
         energies.append(audioop.rms(chunk, sample_width * n_channels))
 
+    if len(energies)==0:
+        return []
     threshold = percentile(energies, 0.2)
 
     elapsed_time = 0
@@ -201,6 +204,8 @@ def generate_subtitles( # pylint: disable=too-many-locals,too-many-arguments
     audio_filename, audio_rate = extract_audio(source_path)
 
     regions = find_speech_regions(audio_filename)
+    if len(regions)==0:
+        return []
 
     pool = multiprocessing.Pool(concurrency)
     converter = FLACConverter(source_path=audio_filename)
