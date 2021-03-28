@@ -1,7 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from . import db
-from .models import Course, User, User_Course
+from .models import Course, User, User_Course, Lecture
+import os
 
 main = Blueprint('main', __name__)
 
@@ -108,4 +110,54 @@ def course(code):
 
     instructor = User.query.filter_by(id=course.instructor_id).first().name
 
-    return render_template('course_page.html', course=course, instructor=instructor, admin_access=current_user.is_instructor)
+    lectures=Lecture.query.filter_by(course_id=course.id)
+
+    return render_template('course_page.html', course=course, instructor=instructor, admin_access=current_user.is_instructor, lectures=lectures)
+
+@main.route('/course/<code>/newlecture')
+@login_required
+def newlecture(code):
+    course = Course.query.filter_by(code=code).first()
+    
+    if not course:
+        return render_template('404.html')
+    if course.instructor_id != current_user.id:
+        return 'Invalid access'
+
+    course_lectures = Lecture.query.filter_by(course_id=course.id)
+    num_lectures = 0
+    for lecture in course_lectures:
+        num_lectures += 1
+
+    return render_template('new_lecture.html', code=code, default_name='Lecture '+str(num_lectures+1))
+
+@main.route('/course/<code>/newlecture', methods=['POST'])
+@login_required
+def newlecture_post(code):
+    course = Course.query.filter_by(code=code).first()
+    
+    if not course:
+        return render_template('404.html')
+    if course.instructor_id != current_user.id:
+        return 'Invalid access'
+
+    name = request.form.get('name')
+    ppt = request.files['ppt']
+    video = request.files['video']
+
+    course_lectures = Lecture.query.filter_by(course_id=course.id)
+    num_lectures = 0
+    for lecture in course_lectures:
+        num_lectures += 1
+    lecture_no = num_lectures+1
+
+    ppt.save(os.path.join('files', f'course-{course.id}-lecture-{lecture_no}.pdf'))
+    video.save(os.path.join('files', f'course-{course.id}-lecture-{lecture_no}.mp4'))
+
+    lecture = Lecture(name=name, lecture_no=lecture_no, course_id=course.id)
+    db.session.add(lecture)
+    db.session.commit()
+
+    # Processing here for slides
+    
+    return redirect(url_for('main.course', code=code))

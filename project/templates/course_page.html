@@ -12,7 +12,17 @@
 </h1>
 
 {% if admin_access %}
-<button class="button is-block is-info is-large">Upload a new lecture</button>
+<a href="/course/{{course.code}}/newlecture" class="button is-block is-info is-large">Upload a new lecture</a>
 {% endif %}
+
+{% for lecture in lectures %}
+<br>
+<article class="tile is-vertical notification is-warning">
+    <a href=''>
+      <p class="title">{{lecture.lecture_no}}</p>
+      <p class="subtitle">{{lecture.name}}</p>
+</a>
+</article>
+{% endfor %}
 
 {% endblock %}

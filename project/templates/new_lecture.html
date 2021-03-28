@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="column is-4 is-offset-4">
+    <h3 class="title">Upload a new lecture for {{code}}</h3>
+    <div class="box">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="notification is-danger">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <form method="POST" action="/course/{{code}}/newlecture" enctype=multipart/form-data>
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="name" placeholder="Lecture name" value="{{ default_name }}"autofocus="">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <label for="ppt">Presentation slides (pdf)</label>
+                    <input class="input is-large" type="file" id="ppt" name="ppt" autofocus="">
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="control">
+                    <label for="video">Lecture video</label>
+                    <input class="input is-large" type="file" id="video" name="video" autofocus="">
+                </div>
+            </div>
+
+            <button class="button is-block is-info is-large is-fullwidth">Add lecture</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
