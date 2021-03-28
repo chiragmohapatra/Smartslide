@@ -290,6 +290,8 @@ def convert_subs_to_string(subs):
 # This is the main function, use this
 # returns a list of tuples of subtitles in string form and mp3 files
 def generate_subs(filename,times):
+    os.makedirs(os.path.join("./temp/"), exist_ok=True)
+
     ans = []
     generate_subclips(filename , times)
 

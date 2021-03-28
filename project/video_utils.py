@@ -9,6 +9,7 @@ from decord import VideoReader
 from decord import cpu, gpu
 import utils
 import pytesseract
+import subs_utils
 
 PROCESSED_FILES_DIR = "project/testing/"
 
@@ -131,9 +132,9 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
         }) 
     """
     pdf_out_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "pdf_pages")
-    # utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
+    utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
     video_frames_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "video_frames")
-    # video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
+    video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
 
     contrast = cv2.imread("images/jp_gates_contrast.png")
     pdf_frame_texts = []
@@ -206,13 +207,13 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
         else:
             times.append((all_slides_data[i]["video_matched_frame_time"], all_slides_data[i+1]["video_matched_frame_time"]))
 
-    subs_and_audios = generate_subs(video_file_path , times)
+    subs_and_audios = subs_utils.generate_subs(video_file_path , times)
     
     audio_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "audios")
     for i in range(0, len(all_slides_data)):
         all_slides_data[i]["subtitle"] = subs_and_audios[i][0]
         old_audio_path = subs_and_audios[i][1]
-        new_audio_path = os.path.join(audio_dir, slide_no+".mp3")
+        new_audio_path = os.path.join(audio_dir, str(slide_no)+".mp3")
         os.rename(old_audio_path, new_audio_path)
         all_slides_data[i]["audio_path"] = new_audio_path
 
