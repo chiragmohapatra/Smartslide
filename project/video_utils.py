@@ -10,6 +10,7 @@ from decord import cpu, gpu
 from .utils import *
 from .subs_utils import *
 import pytesseract
+import shutil
 
 PROCESSED_FILES_DIR = "project/testing/"
 
@@ -198,10 +199,11 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
     # audio_path:
     # }
 
+    cur_dir = os.getcwd()
     all_slides_data = []
     for i in range(0, len(pdf_frame_texts)):
         slide_no, slide_text, image_path = pdf_frame_texts[i]
-        all_slides_data.append({"slide_no": slide_no+1, "slide_text": slide_text, "image_path": image_path, "video_frame_matched": matched[slide_no], "video_matched_frame_time": get_seconds_from_frame_no(matched[slide_no], video_file_path)})
+        all_slides_data.append({"slide_no": slide_no+1, "slide_text": slide_text, "image_path": os.path.join(cur_dir, image_path), "video_frame_matched": matched[slide_no], "video_matched_frame_time": get_seconds_from_frame_no(matched[slide_no], os.path.join(cur_dir, video_file_path))})
 
     times = []
     for i in range(0, len(all_slides_data)):
@@ -213,12 +215,13 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
     subs_and_audios = generate_subs(video_file_path , times)
     
     audio_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "audios")
+
     for i in range(0, len(all_slides_data)):
         all_slides_data[i]["subtitles"] = subs_and_audios[i][0]
-        old_audio_path = subs_and_audios[i][1]
-        # new_audio_path = os.path.join(audio_dir, str(slide_no)+".mp3")
-        # os.rename(old_audio_path, new_audio_path)
-        all_slides_data[i]["audio_path"] = old_audio_path
+        old_audio_path = os.path.join(cur_dir, subs_and_audios[i][1])
+        new_audio_path = os.path.join(cur_dir, audio_dir, str(slide_no)+".mp3")
+        shutil.copy(old_audio_path, new_audio_path)
+        all_slides_data[i]["audio_path"] = new_audio_path
 
     return all_slides_data
 
