@@ -114,7 +114,7 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
     Parameters
     ----------
     pdf_file_path: path of the pdf file
-    video_file_path:
+    video_file_path: path of the video file
     user_id: id of the user calling this function. This comes from webapp logged in user
     project_id: id of the project user is working with. This comes from webapp project id that logged in user is currently working on
     Returns
@@ -125,7 +125,9 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
             "slide_text": text generated using ocr of tessaract, 
             "image_path": path of image (pdf screenshot) of this slide, 
             "video_frame_matched": video frame number matched with this frame, 
-            "video_frame_timeframe_match: time stamp in seconds of frame of video that matched with this slide"
+            "video_frame_timeframe_match: time stamp in seconds of frame of video that matched with this slide,
+            "subtitle": subtitle, 
+            "audio_path": path of audio file for this slide
         }) 
     """
     pdf_out_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "pdf_pages")
@@ -193,8 +195,27 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
     # }
 
     all_slides_data = []
-    for slide_no, slide_text, image_path in pdf_frame_texts:
-        all_slides_data.append({"slide_no": slide_no, "slide_text": slide_text, "image_path": image_path, "video_frame_matched": matched[slide_no], "video_frame_timeframe_match": utils.get_seconds_from_frame_no(matched[slide_no], video_file_path)})
+    for i in range(0, len(pdf_frame_texts)):
+        slide_no, slide_text, image_path = pdf_frame_texts[i]
+        all_slides_data.append({"slide_no": slide_no+1, "slide_text": slide_text, "image_path": image_path, "video_frame_matched": matched[slide_no], "video_matched_frame_time": utils.get_seconds_from_frame_no(matched[slide_no], video_file_path)})
+
+    times = []
+    for i in range(0, len(all_slides_data)):
+        if (i == len(all_slides_data)-1):
+            times.append((all_slides_data[i]["video_matched_frame_time"], all_slides_data[i]["video_matched_frame_time"]+100000))
+        else:
+            times.append((all_slides_data[i]["video_matched_frame_time"], all_slides_data[i+1]["video_matched_frame_time"]))
+
+    subs_and_audios = generate_subs(video_file_path , times)
+    
+    audio_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "audios")
+    for i in range(0, len(all_slides_data)):
+        all_slides_data[i]["subtitle"] = subs_and_audios[i][0]
+        old_audio_path = subs_and_audios[i][1]
+        new_audio_path = os.path.join(audio_dir, slide_no+".mp3")
+        os.rename(old_audio_path, new_audio_path)
+        all_slides_data[i]["audio_path"] = new_audio_path
+
     return all_slides_data
 
 
