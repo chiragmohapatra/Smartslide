@@ -299,16 +299,15 @@ def generate_subs(filename,times):
         subtitles = generate_subtitles(source_path=src_path)
         subs = convert_subs_to_string(subtitles)
         audio_filename, audio_rate = extract_audio(src_path,suf='.mp3')
-        ans.append((subs,audio_filename))
+        os.system("cp " + audio_filename + " ./temp/" + str(i) + '.mp3')
+        ans.append((subs,"./temp/" + str(i) + '.mp3'))
         i+=1
         
     remove_subclips(times)
     return ans
 
-"""
 times = [(0,2),(3,12)]
 subs = generate_subs('./data/samplevid.mp4' , times)
 
 for sub in subs:
     print(sub)
-"""
