@@ -110,7 +110,7 @@ def video_to_frames(video_path, frames_dir, overwrite=False, every=1):
     return os.path.join(frames_dir)
 
 
-def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
+def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, debug=False):
     """Give fraction match between 2 images using SURF and FLANN
     Parameters
     ----------
@@ -132,9 +132,9 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
         }) 
     """
     pdf_out_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "pdf_pages")
-    utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
+    if (not debug) utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
     video_frames_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "video_frames")
-    video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
+    if (not debug) video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
 
     contrast = cv2.imread("images/jp_gates_contrast.png")
     pdf_frame_texts = []
@@ -149,7 +149,7 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
     i = 0
     for video_frame_filename in os.listdir(video_frames_dir):
         if video_frame_filename.endswith(".jpg"):
-            if (i == 10): break
+            if (i == 10 and debug): break
             image_path = os.path.join(video_frames_dir, video_frame_filename)
             img = cv2.imread(image_path)
             img = cv2.resize(img, (500, 500))
@@ -213,9 +213,9 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
     for i in range(0, len(all_slides_data)):
         all_slides_data[i]["subtitle"] = subs_and_audios[i][0]
         old_audio_path = subs_and_audios[i][1]
-        new_audio_path = os.path.join(audio_dir, str(slide_no)+".mp3")
-        os.rename(old_audio_path, new_audio_path)
-        all_slides_data[i]["audio_path"] = new_audio_path
+        # new_audio_path = os.path.join(audio_dir, str(slide_no)+".mp3")
+        # os.rename(old_audio_path, new_audio_path)
+        all_slides_data[i]["audio_path"] = old_audio_path
 
     return all_slides_data
 
@@ -223,4 +223,4 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
 if __name__ == '__main__':
     # test it
     # video_to_frames(video_path='project/testing/lecture.mp4', frames_dir='project/testing/extracted_frames', overwrite=True, every=60)
-    seperate_into_slides("project/testing/lecture.pdf", "project/testing/lecture.mp4", "0", "0")
+    seperate_into_slides("project/testing/lecture.pdf", "project/testing/lecture.mp4", "0", "0", True)
