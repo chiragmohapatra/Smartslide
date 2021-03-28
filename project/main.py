@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from . import db
 from .models import Course, User, User_Course, Lecture, Slide
 import os
+from multiprocessing import Process
 
 main = Blueprint('main', __name__)
 
@@ -131,6 +132,21 @@ def newlecture(code):
 
     return render_template('new_lecture.html', code=code, default_name='Lecture '+str(num_lectures+1))
 
+def process_slides(ppt_path, video_path, lecture):
+    slides = []
+    # slides = get_slides(ppt_path, video_path)
+    
+    for slide in slides:
+        new_slide = Slide(
+            lecture_id = lecture.id, 
+            slide_no = slide['slide_no'],
+            subtitles = slide['subtitles'],
+            image_path = slide['image_path'],
+            audio_path = slide['audio_path']
+        )
+        db.session.add(new_slide)
+        db.session.commit()
+
 @main.route('/course/<code>/newlecture', methods=['POST'])
 @login_required
 def newlecture_post(code):
@@ -174,19 +190,12 @@ def newlecture_post(code):
     db.session.add(lecture)
     db.session.commit()
 
-    slides = []
-    # slides = get_slides(ppt_path, video_path)
-    
-    for slide in slides:
-        new_slide = Slide(
-            lecture_id = lecture.id, 
-            slide_no = slide['slide_no'],
-            subtitles = slide['subtitles'],
-            image_path = slide['image_path'],
-            audio_path = slide['audio_path']
-        )
-        db.session.add(new_slide)
-        db.session.commit()
+    slides_process = Process(
+        target=process_slides,
+        args=(ppt_path, video_path, lecture),
+        daemon=True
+    )
+    slides_process.start()
 
     return redirect(url_for('main.course', code=code))
 
