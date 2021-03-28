@@ -220,6 +220,9 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id, de
         all_slides_data[i]["subtitles"] = subs_and_audios[i][0]
         old_audio_path = os.path.join(cur_dir, subs_and_audios[i][1])
         new_audio_path = os.path.join(cur_dir, audio_dir, str(slide_no)+".mp3")
+
+        audio_dir, _ = os.path.split(new_audio_path)
+        os.makedirs(os.path.join(audio_dir), exist_ok=True)
         shutil.copy(old_audio_path, new_audio_path)
         all_slides_data[i]["audio_path"] = new_audio_path
 
