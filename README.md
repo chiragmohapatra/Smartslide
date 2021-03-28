@@ -35,5 +35,6 @@ python project video_utils.py
 ## Pdf to images
 ```
 conda install poppler
+brew install tesseract (mac)
 python pdf_to_images.py
 ```
