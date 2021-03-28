@@ -1,0 +1,6 @@
+{
+    "python.pythonPath": "/opt/miniconda3/envs/flask/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": false,
+    "python.analysis.extraPaths": ["./project"]
+}

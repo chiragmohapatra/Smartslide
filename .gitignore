@@ -1,1 +1,9 @@
 project/__pycache__/
+__pycache__/
+project/testing/
+.DS_Store
+out.txt
+out1.txt
+out2.txt
+out3.txt
+out4.txt

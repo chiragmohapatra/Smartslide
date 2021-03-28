@@ -12,12 +12,28 @@ Create a conda environment with necessary packages
 ```
 conda create --name flask python=3.8
 conda activate flask
-conda install flask flask-sqlalchemy flask-login
+pip install -r requirements.txt
 ```
 
 Inside the project directory, do:
 ```
 export FLASK_APP=project
+```
+
+Now from the main directory do
+```
 flask run
 ```
 to get the server up and running on localhost:5000
+
+## Extracting frames from video
+Video is at project/testing/lecture.mp4 and frames are saved at project/testing/extracted_frames
+```
+python project video_utils.py
+```
+
+## Pdf to images
+```
+conda install poppler
+python pdf_to_images.py
+```
