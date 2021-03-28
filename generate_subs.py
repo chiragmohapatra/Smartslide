@@ -19,6 +19,8 @@ except ImportError:
 from googleapiclient.discovery import build
 from progressbar import ProgressBar, Percentage, Bar, ETA
 
+from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
+
 GOOGLE_SPEECH_API_KEY = "AIzaSyBOti4mM-6x9WDnZIjIeyEU21OpBXqWBgw"
 GOOGLE_SPEECH_API_URL = "http://www.google.com/speech-api/v2/recognize?client=chromium&lang={lang}&key={key}"
 
@@ -126,11 +128,11 @@ def which(program):
                 return exe_file
     return None
 
-def extract_audio(filename, channels=1, rate=16000):
+def extract_audio(filename, channels=1, rate=16000 , suf='.wav'):
     """
     Extract audio from an input file to a temporary WAV file.
     """
-    temp = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+    temp = tempfile.NamedTemporaryFile(suffix=suf, delete=False)
     if not os.path.isfile(filename):
         print("The given file does not exist: {}".format(filename))
         raise Exception("Invalid filepath: {}".format(filename))
@@ -253,8 +255,60 @@ def generate_subtitles( # pylint: disable=too-many-locals,too-many-arguments
     #return dest
 
 """
-subtitles = generate_subtitles(source_path='./data/samplevid.mp4')
+(subtitles,audio_filename) = generate_subtitles(source_path='./data/samplevid.mp4')
+print(audio_filename)
 
 for sub in subtitles:
-    print(sub[1])
+    print(sub)
+"""
+
+# times is a list of tuples (starttime,endtime)
+def generate_subclips(filename,times):
+    i = 1
+    for time in times:
+        ffmpeg_extract_subclip(filename, time[0], time[1], targetname='./temp/' + str(i) + '.mp4')
+        i+=1
+
+def remove_subclips(times):
+    i = 1
+    for _ in times:
+        os.remove('./temp/' + str(i) + '.mp4')
+        i+=1
+
+"""
+times = [(0,2),(3,5)]
+generate_subclips('./data/samplevid.mp4' , times)
+remove_subclips(times)
+"""
+
+def convert_subs_to_string(subs):
+    ans_str = ''
+    for sub in subs:
+        ans_str = sub[1] + '\n'
+    return ans_str
+
+# This is the main function, use this
+# returns a list of tuples of subtitles in string form and mp3 files
+def generate_subs(filename,times):
+    ans = []
+    generate_subclips(filename , times)
+
+    i = 1
+    for _ in times:
+        src_path = './temp/' + str(i) + '.mp4'
+        subtitles = generate_subtitles(source_path=src_path)
+        subs = convert_subs_to_string(subtitles)
+        audio_filename, audio_rate = extract_audio(src_path,suf='.mp3')
+
+        ans.append((subs,audio_filename))
+        
+    remove_subclips(times)
+    return ans
+
+"""
+times = [(0,2),(3,5)]
+subs = generate_subs('./data/samplevid.mp4' , times)
+
+for sub in subs:
+    print(sub)
 """
