@@ -5,7 +5,6 @@ from pdf2image import convert_from_path
 from pdf2image.generators import threadsafe
 from skimage.metrics import structural_similarity as ssim
 from skimage import exposure
-import pytesseract
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 def convert_pdf_to_images(pdf_file, out_dir=None, save_pages=False):
@@ -16,12 +15,21 @@ def convert_pdf_to_images(pdf_file, out_dir=None, save_pages=False):
         i = 0
         os.makedirs(os.path.join(out_dir), exist_ok=True)
         for page in pages:
-            page.save(os.path.join(out_dir, "out" + str(i) + ".jpg"), "JPEG")
+            page.save(os.path.join(out_dir, str(i) + ".jpg"), "JPEG")
             i += 1
     return pages
 
 # pdf_file = './data/sample.pdf'
 # pages = convert_pdf_to_images(pdf_file, "data/saved", True)
+
+def fraction_match_texts(text_a, text_b):
+    text_a = "af " + text_a
+    text_b = "af " + text_b
+    corpus = [text_a, text_b]
+    vect = TfidfVectorizer(min_df=1)
+    tfidf = vect.fit_transform(corpus)
+    pairwise_similarity = tfidf * tfidf.T
+    return pairwise_similarity.toarray()[0][1]     
 
 def fraction_match_images(image_a, image_b):
 	# compute the structural similarity
@@ -32,10 +40,10 @@ def fraction_match_images(image_a, image_b):
     return ocr_matching(image_a, image_b)
 
 def ocr_matching(image_a, image_b):
-    corpus = (pytesseract.image_to_string(image_a), pytesseract.image_to_string(image_b))
+    corpus = [pytesseract.image_to_string(image_a), pytesseract.image_to_string(image_b)]
     print(corpus[0])
     print(corpus[1])
-    vect = TfidfVectorizer(min_df=1, stop_words="english")
+    vect = TfidfVectorizer(min_df=1)
     tfidf = vect.fit_transform(corpus)
     pairwise_similarity = tfidf * tfidf.T
     return pairwise_similarity.toarray()[0][1]                                                                                                                                                                                                            
@@ -128,3 +136,27 @@ def SIFT_match(img1, img2, hessianThreshold: int = 400, ratio_thresh: float = 0.
         fraction = 1
     # fraction can be greater than one in blur images because we are multiplying fraction with 2
     return fraction
+
+def get_fps_video(video_path: str):
+    """Give fraction match between 2 images using SURF and FLANN
+    Parameters
+    ----------
+    video_path: path of the video file
+    Returns
+    -------
+    int,
+        returns frames per second in video
+    """
+    video = cv2.VideoCapture(video_path)
+    # Find OpenCV version
+    (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
+    if int(major_ver)  < 3 :
+        fps = video.get(cv2.cv.CV_CAP_PROP_FPS)
+    else :
+        fps = video.get(cv2.CAP_PROP_FPS)
+    video.release()
+    return fps
+
+def get_seconds_from_frame_no(frame_no:int, video_path: str):
+    fps = get_fps_video(video_path)
+    return int(frame_no/fps)

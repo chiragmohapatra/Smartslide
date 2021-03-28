@@ -8,6 +8,7 @@ import numpy as np
 from decord import VideoReader
 from decord import cpu, gpu
 import utils
+import pytesseract
 
 PROCESSED_FILES_DIR = "project/testing/"
 
@@ -109,27 +110,80 @@ def video_to_frames(video_path, frames_dir, overwrite=False, every=1):
 
 
 def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
+    """Give fraction match between 2 images using SURF and FLANN
+    Parameters
+    ----------
+    pdf_file_path: path of the pdf file
+    video_file_path:
+    user_id: id of the user calling this function. This comes from webapp logged in user
+    project_id: id of the project user is working with. This comes from webapp project id that logged in user is currently working on
+    Returns
+    -------
+    int,
+        returns array of dictionary ({
+            "slide_no",
+            "slide_text": text generated using ocr of tessaract, 
+            "image_path": path of image (pdf screenshot) of this slide, 
+            "video_frame_matched": video frame number matched with this frame, 
+            "video_frame_timeframe_match: time stamp in seconds of frame of video that matched with this slide"
+        }) 
+    """
     pdf_out_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "pdf_pages")
     # utils.convert_pdf_to_images(pdf_file_path, out_dir=pdf_out_dir, save_pages=True)
     video_frames_dir = os.path.join(PROCESSED_FILES_DIR, user_id, project_id, "video_frames")
     # video_to_frames(video_path=video_file_path, frames_dir=video_frames_dir, overwrite=True, every=60)
 
     contrast = cv2.imread("images/jp_gates_contrast.png")
-    pdf_frames = []
+    pdf_frame_texts = []
     for pdf_file_name in os.listdir(pdf_out_dir):
         if pdf_file_name.endswith(".jpg"):
-            img = cv2.imread(os.path.join(pdf_out_dir, pdf_file_name))
-            img = cv2.resize(img, (256, 256))
-            pdf_frames.append(img)
+            image_path = os.path.join(pdf_out_dir, pdf_file_name)
+            img = cv2.imread(image_path)
+            img = cv2.resize(img, (500, 500))
+            pdf_frame_texts.append((int(os.path.splitext(pdf_file_name)[0]), pytesseract.image_to_string(img), image_path))
 
-    video_frames = []
+    video_frames_texts = []
+    i = 0
     for video_frame_filename in os.listdir(video_frames_dir):
         if video_frame_filename.endswith(".jpg"):
-            img = cv2.imread(os.path.join(video_frames_dir, video_frame_filename))
-            img = cv2.resize(img, (256, 256))
-            video_frames.append((int(os.path.splitext(video_frame_filename)[0]), img))
+            if (i == 10): break
+            image_path = os.path.join(video_frames_dir, video_frame_filename)
+            img = cv2.imread(image_path)
+            img = cv2.resize(img, (500, 500))
+            video_frames_texts.append((int(os.path.splitext(video_frame_filename)[0]), pytesseract.image_to_string(img)))
+            i += 1
 
-    video_frames.sort()
+    pdf_frame_texts.sort()
+    video_frames_texts.sort()
+
+    assert len(pdf_frame_texts) > 0
+    assert len(video_frames_texts) > 0
+
+    matched = []
+    for slide_no, pdf_frame_text, _ in pdf_frame_texts:
+        all_comparision = []
+        for frame_index, video_frame_text in video_frames_texts:
+            s = utils.fraction_match_texts(pdf_frame_text, video_frame_text)
+            all_comparision.append((frame_index, s))
+            # print(f"slide_no {slide_no}, frame_index {frame_index}, match {s}")
+        
+        maxs = -1
+        for _, s in all_comparision:
+            maxs = max(maxs, s)
+        
+        best_matched = (-1, -1)
+        for i in range(0, len(all_comparision)):
+            frame_index, s = all_comparision[i]
+            if s >= 0.95*(maxs):
+                best_matched = (frame_index, s)
+                break
+            last_s = s
+
+        assert best_matched[0] != -1
+        
+        print(f"slide_no {slide_no}, video_frame {best_matched[0]}")
+        matched.append(best_matched[0])
+    
 
     # {
     # slide_no:,
@@ -138,42 +192,10 @@ def seperate_into_slides(pdf_file_path, video_file_path, user_id, project_id):
     # audio_path:
     # }
 
-    assert len(pdf_frames) > 0
-    assert len(video_frames) > 0
-
-    for slide_no in range(0, len(pdf_frames)):
-        pdf_frame = pdf_frames[slide_no]
-        all_comparision = []
-        for frame_index, video_frame in video_frames:
-            s = utils.fraction_match_images(pdf_frame, video_frame)
-            all_comparision.append((frame_index, s))
-            print(f"slide_no {slide_no}, frame_index {frame_index}, ssim {s}")
-        
-        maxs = -1
-        for _, s in all_comparision:
-            s = max(maxs, s)
-        
-        best_matched = (-1, -1)
-        for i in range(0, len(all_comparision)):
-            frame_index, s = all_comparision[i]
-            if s >= 0.96*(maxs):
-                best_matched = (frame_index, s)
-                break
-            last_s = s
-
-        assert best_matched[0] != -1
-
-        # frame_index, s = all_comparision[0]
-        # best_matched = [frame_index, s]
-        # last_s = s
-        # for i in range(1, len(all_comparision)):
-        #     frame_index, s = all_comparision[i]
-        #     change = s - last_s
-        #     if best_matched[1] < change + s:
-        #         best_matched = (frame_index, change + s)
-        #     last_s = s
-        
-        print(f"slide_no {slide_no}, video_frame {best_matched[0]}")
+    all_slides_data = []
+    for slide_no, slide_text, image_path in pdf_frame_texts:
+        all_slides_data.append({"slide_no": slide_no, "slide_text": slide_text, "image_path": image_path, "video_frame_matched": matched[slide_no], "video_frame_timeframe_match": utils.get_seconds_from_frame_no(matched[slide_no], video_file_path)})
+    return all_slides_data
 
 
 if __name__ == '__main__':
